@@ -1,0 +1,9 @@
+{
+  "name": "wm-simulador-lead",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check api/solar-lead.js && node --check api/solar-lead-list.js && node --check api/solar-lead-report.js",
+    "serve": "npx --yes http-server . -p 4173 -c-1"
+  }
+}

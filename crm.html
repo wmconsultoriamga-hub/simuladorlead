@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM · Simulador — WM Energia Solar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --preto:#0A0A0A;
+      --painel:#111419;
+      --card:#181D24;
+      --card2:#1E242D;
+      --borda:#262D38;
+      --laranja:#E87B1E;
+      --azul:#1A6FA8;
+      --ouro:#F5C518;
+      --verde:#22C55E;
+      --vermelho:#F87171;
+      --branco:#FFF;
+      --cinza:#8B93A1;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 70% 40% at 50% -5%, rgba(26,111,168,.16), transparent 60%),
+        var(--preto);
+      color: var(--branco);
+    }
+    button, input { font: inherit; }
+    a { color: inherit; }
+
+    #login {
+      position: fixed;
+      inset: 0;
+      background: var(--preto);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 18px;
+    }
+    .login-box {
+      width: min(380px, 100%);
+      background: var(--painel);
+      border: 1px solid var(--borda);
+      border-radius: 16px;
+      padding: 34px;
+      text-align: center;
+    }
+    .login-box h2 {
+      margin: 0 0 4px;
+      font-family: Archivo, sans-serif;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .login-box h2 span { color: var(--laranja); }
+    .login-box p {
+      margin: 0 0 22px;
+      color: var(--cinza);
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+    .login-box input {
+      width: 100%;
+      background: var(--card);
+      border: 1.5px solid var(--borda);
+      border-radius: 10px;
+      padding: 13px;
+      color: var(--branco);
+      outline: none;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .login-box input:focus { border-color: var(--laranja); }
+    .login-box button {
+      width: 100%;
+      background: linear-gradient(135deg, var(--laranja), #FF9A3D);
+      border: 0;
+      border-radius: 10px;
+      padding: 13px;
+      color: var(--branco);
+      font-weight: 800;
+      font-family: Archivo, sans-serif;
+      cursor: pointer;
+    }
+    .erro {
+      display: none;
+      margin-top: 10px;
+      color: var(--vermelho);
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 28px 16px;
+      background: rgba(10,10,10,.95);
+      border-bottom: 1px solid var(--borda);
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      margin: 0;
+      font-family: Archivo, sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.35rem, 3vw, 1.8rem);
+      letter-spacing: 0;
+    }
+    h1 span { color: var(--laranja); }
+    .sub {
+      margin: 5px 0 0;
+      color: var(--cinza);
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .btn {
+      min-height: 40px;
+      background: transparent;
+      border: 1px solid var(--borda);
+      color: var(--branco);
+      border-radius: 99px;
+      padding: 9px 18px;
+      font-size: .84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: var(--laranja); }
+    .btn.tag {
+      border-color: rgba(245,197,24,.55);
+      color: var(--ouro);
+      cursor: default;
+    }
+
+    .painel {
+      padding: 18px 28px 0;
+    }
+    .filtros {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto auto;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .filtros input {
+      min-height: 44px;
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      color: var(--branco);
+      padding: 0 13px;
+      outline: none;
+    }
+    .filtros input:focus { border-color: var(--laranja); }
+    .pipeline-switch {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .pipe-btn {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      color: var(--cinza);
+      border-radius: 99px;
+      padding: 9px 18px;
+      font-size: .84rem;
+      font-weight: 800;
+      cursor: default;
+    }
+    .pipe-btn.ativa {
+      border-color: var(--ouro);
+      color: var(--ouro);
+      background: rgba(245,197,24,.1);
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .kpi {
+      background: var(--painel);
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .kpi .rot {
+      margin: 0 0 8px;
+      color: var(--cinza);
+      font-size: .76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .kpi .num {
+      margin: 0;
+      font-family: Archivo, sans-serif;
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    #board {
+      display: flex;
+      gap: 14px;
+      padding: 0 28px 32px;
+      overflow-x: auto;
+      align-items: flex-start;
+    }
+    .col {
+      min-width: 282px;
+      width: 282px;
+      flex-shrink: 0;
+      background: var(--painel);
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      padding: 12px;
+      max-height: calc(100vh - 260px);
+      display: flex;
+      flex-direction: column;
+    }
+    .col-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px 12px;
+      gap: 10px;
+    }
+    .col-head h3 {
+      margin: 0;
+      font-size: .88rem;
+      font-weight: 800;
+    }
+    .contador {
+      min-width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 99px;
+      padding: 0 7px;
+      font-size: .74rem;
+      font-weight: 800;
+    }
+    .col-body {
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .lead {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 12px;
+      padding: 13px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color .15s, transform .15s;
+    }
+    .lead:hover {
+      border-color: var(--azul);
+      transform: translateY(-1px);
+    }
+    .lead h4 {
+      margin: 0 0 7px;
+      font-size: .98rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .68rem;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 3px 8px;
+      margin-bottom: 8px;
+    }
+    .badge.q { background: rgba(34,197,94,.15); color: var(--verde); }
+    .badge.p { background: rgba(245,197,24,.13); color: var(--ouro); }
+    .badge.w { background: rgba(26,111,168,.18); color: #71C6FF; }
+    .info {
+      color: var(--cinza);
+      font-size: .78rem;
+      line-height: 1.78;
+    }
+    .info b {
+      color: #C8CEDA;
+      font-weight: 600;
+    }
+    .data {
+      margin-top: 8px;
+      color: #555E6E;
+      font-size: .68rem;
+    }
+    .vazio {
+      color: #4A5160;
+      font-size: .8rem;
+      text-align: center;
+      border: 1.5px dashed var(--borda);
+      border-radius: 10px;
+      padding: 26px 10px;
+      margin: 4px;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      padding: 18px;
+    }
+    #modal {
+      width: min(520px, 100%);
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #0F1A2A;
+      border: 1px solid var(--borda);
+      border-radius: 16px;
+      padding: 26px;
+      position: relative;
+    }
+    #modal h2 {
+      margin: 0 34px 2px 0;
+      font-family: Archivo, sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0;
+    }
+    #modal .mp {
+      margin: 0 0 18px;
+      color: var(--cinza);
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+    .fechar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--borda);
+      border-radius: 99px;
+      background: transparent;
+      color: var(--branco);
+      cursor: pointer;
+    }
+    .m-acoes {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .m-zap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1FAF38;
+      border-radius: 99px;
+      padding: 12px;
+      font-weight: 800;
+      font-size: .9rem;
+      text-decoration: none;
+    }
+    .m-copiar {
+      background: transparent;
+      border: 1px solid var(--borda);
+      border-radius: 99px;
+      padding: 12px 18px;
+      color: var(--branco);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .det {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .det div {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 11px;
+      min-width: 0;
+    }
+    .det span {
+      display: block;
+      color: var(--cinza);
+      font-size: .72rem;
+      margin-bottom: 4px;
+    }
+    .det b {
+      display: block;
+      font-size: .9rem;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 760px) {
+      header { padding: 20px 16px 14px; }
+      .painel { padding: 16px 16px 0; }
+      #board { padding: 0 16px 28px; }
+      .filtros { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .col { min-width: 84vw; width: 84vw; max-height: none; }
+      .m-acoes { flex-direction: column; }
+      .det { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section id="login">
+    <div class="login-box">
+      <h2>CRM · <span>Simulador</span></h2>
+      <p>Use o token do CRM configurado na Vercel para carregar os leads reais do simulador.</p>
+      <input id="token" type="password" placeholder="Token de acesso" autocomplete="current-password">
+      <button id="entrar" type="button">Entrar no CRM</button>
+      <div class="erro" id="loginErro"></div>
+    </div>
+  </section>
+
+  <header>
+    <div>
+      <h1>CRM · <span>Simulador</span></h1>
+      <p class="sub">Leads captados em <b>Pipeline 2 - Simulador</b>, usando a mesma lógica visual do CRM de captação.</p>
+    </div>
+    <div class="acoes">
+      <button class="btn tag" type="button">Pipeline 2</button>
+      <button class="btn" id="atualizar" type="button">Atualizar</button>
+      <button class="btn" id="sair" type="button">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="painel">
+      <div class="pipeline-switch">
+        <button class="pipe-btn" type="button">Pipeline 1 - Captação</button>
+        <button class="pipe-btn ativa" type="button">Pipeline 2 - Simulador</button>
+      </div>
+      <div class="filtros">
+        <input id="busca" type="search" placeholder="Buscar por nome, telefone, cidade ou CEP">
+        <button class="btn" id="buscar" type="button">Buscar</button>
+        <button class="btn" id="limpar" type="button">Limpar</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><p class="rot">Leads</p><p class="num" id="k-total">0</p></div>
+        <div class="kpi"><p class="rot">Proposta vista</p><p class="num" id="k-proposta" style="color:var(--ouro)">0</p></div>
+        <div class="kpi"><p class="rot">WhatsApp</p><p class="num" id="k-whats" style="color:var(--verde)">0</p></div>
+        <div class="kpi"><p class="rot">Ticket médio</p><p class="num" id="k-ticket" style="color:#71C6FF">R$ 0</p></div>
+      </div>
+      <div class="erro" id="erro"></div>
+    </section>
+
+    <section id="board" aria-label="Pipeline de leads do simulador"></section>
+  </main>
+
+  <div id="overlay">
+    <article id="modal"></article>
+  </div>
+
+  <script>
+    const COLUNAS = [
+      { id: 'captado', nome: 'Novo lead', cor: '#F5C518' },
+      { id: 'proposta', nome: 'Proposta vista', cor: '#1A6FA8' },
+      { id: 'whatsapp', nome: 'Chamou no WhatsApp', cor: '#22C55E' }
+    ];
+    const tokenInput = document.querySelector('#token');
+    const loginBox = document.querySelector('#login');
+    const loginErro = document.querySelector('#loginErro');
+    const erroBox = document.querySelector('#erro');
+    const board = document.querySelector('#board');
+    const busca = document.querySelector('#busca');
+    const overlay = document.querySelector('#overlay');
+    const modal = document.querySelector('#modal');
+    let leads = [];
+
+    const onlyNumbers = (value) => String(value || '').replace(/\D/g, '');
+    const money = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const dateBR = (value) => value ? new Date(value).toLocaleString('pt-BR') : '-';
+    const esc = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+
+    tokenInput.value = localStorage.getItem('wm_simulador_crm_token') || '';
+    if (sessionStorage.getItem('wm_simulador_crm_ok') === '1' && tokenInput.value) {
+      loginBox.style.display = 'none';
+      carregarLeads();
+    }
+
+    function token() {
+      return tokenInput.value.trim();
+    }
+
+    function etapa(lead) {
+      if (lead.consultant_clicked_at) return 'whatsapp';
+      if (lead.proposal_viewed_at) return 'proposta';
+      return 'captado';
+    }
+
+    function cidade(lead) {
+      return [lead.city, lead.uf].filter(Boolean).join('/');
+    }
+
+    function zapUrl(lead) {
+      const phone = onlyNumbers(lead.phone_digits || lead.phone);
+      const clean = phone.replace(/^55/, '');
+      const msg = encodeURIComponent(`Olá, ${lead.name || ''}! Aqui é da WM Energia Solar. Recebemos sua simulação pelo site e vou te ajudar com a proposta.`);
+      return clean ? `https://wa.me/55${clean}?text=${msg}` : '#';
+    }
+
+    function cardHTML(lead) {
+      const stage = etapa(lead);
+      const badgeClass = stage === 'whatsapp' ? 'q' : stage === 'proposta' ? 'w' : 'p';
+      return `
+        <article class="lead" data-id="${esc(lead.lead_id)}">
+          <h4>${esc(lead.name || 'Sem nome')}</h4>
+          <span class="badge ${badgeClass}">${stage === 'whatsapp' ? 'WhatsApp' : stage === 'proposta' ? 'Proposta vista' : 'Lead captado'}</span>
+          <div class="info">
+            <div><b>Telefone:</b> ${esc(lead.phone || lead.phone_digits || '-')}</div>
+            <div><b>Cidade:</b> ${esc(cidade(lead) || '-')}</div>
+            <div><b>Conta:</b> ${money(lead.bill)}</div>
+            <div><b>Sistema:</b> ${esc(lead.panels || '-')} placas · ${esc(lead.kwp || '-')} kWp</div>
+            <div><b>Valor:</b> ${money(lead.cash_price)}</div>
+          </div>
+          <div class="data">${dateBR(lead.captured_at)}</div>
+        </article>
+      `;
+    }
+
+    function atualizarKpis() {
+      const proposta = leads.filter((lead) => lead.proposal_viewed_at).length;
+      const whats = leads.filter((lead) => lead.consultant_clicked_at).length;
+      const precificados = leads.filter((lead) => Number(lead.cash_price) > 0);
+      const ticket = precificados.reduce((sum, lead) => sum + Number(lead.cash_price || 0), 0) / (precificados.length || 1);
+      document.querySelector('#k-total').textContent = leads.length;
+      document.querySelector('#k-proposta').textContent = proposta;
+      document.querySelector('#k-whats').textContent = whats;
+      document.querySelector('#k-ticket').textContent = money(ticket);
+    }
+
+    function renderBoard() {
+      atualizarKpis();
+      board.innerHTML = COLUNAS.map((coluna) => {
+        const itens = leads.filter((lead) => etapa(lead) === coluna.id);
+        return `
+          <section class="col">
+            <div class="col-head">
+              <h3>${esc(coluna.nome)}</h3>
+              <span class="contador" style="background:${coluna.cor}22;color:${coluna.cor}">${itens.length}</span>
+            </div>
+            <div class="col-body">
+              ${itens.length ? itens.map(cardHTML).join('') : '<div class="vazio">Sem leads aqui</div>'}
+            </div>
+          </section>
+        `;
+      }).join('');
+      document.querySelectorAll('.lead').forEach((el) => {
+        el.addEventListener('click', () => abrirLead(el.dataset.id));
+      });
+    }
+
+    async function carregarLeads() {
+      if (!token()) {
+        loginErro.textContent = 'Informe o token de acesso do CRM.';
+        loginErro.style.display = 'block';
+        return;
+      }
+      localStorage.setItem('wm_simulador_crm_token', token());
+      sessionStorage.setItem('wm_simulador_crm_ok', '1');
+      loginErro.style.display = 'none';
+      erroBox.style.display = 'none';
+      board.innerHTML = '<section class="col"><div class="vazio">Carregando leads...</div></section>';
+
+      try {
+        const params = new URLSearchParams({ limit: '150' });
+        if (busca.value.trim()) params.set('search', busca.value.trim());
+        const resp = await fetch(`/api/solar-lead-list?${params}`, {
+          headers: { authorization: `Bearer ${token()}` }
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.message || data.error || 'Falha ao carregar leads');
+        leads = Array.isArray(data.leads) ? data.leads : [];
+        loginBox.style.display = 'none';
+        renderBoard();
+      } catch (error) {
+        leads = [];
+        renderBoard();
+        erroBox.textContent = error.message;
+        erroBox.style.display = 'block';
+      }
+    }
+
+    function abrirLead(id) {
+      const lead = leads.find((item) => String(item.lead_id) === String(id));
+      if (!lead) return;
+      modal.innerHTML = `
+        <button class="fechar" type="button" onclick="fecharModal()">×</button>
+        <h2>${esc(lead.name || 'Sem nome')}</h2>
+        <p class="mp">${esc(cidade(lead) || 'Cidade não informada')} · Captado em ${dateBR(lead.captured_at)}</p>
+        <div class="m-acoes">
+          <a class="m-zap" href="${zapUrl(lead)}" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+          <button class="m-copiar" type="button" onclick="copiarLead('${esc(lead.lead_id)}')">Copiar</button>
+        </div>
+        <div class="det">
+          <div><span>Telefone</span><b>${esc(lead.phone || lead.phone_digits || '-')}</b></div>
+          <div><span>CEP</span><b>${esc(lead.zip || '-')}</b></div>
+          <div><span>Conta de luz</span><b>${money(lead.bill)}</b></div>
+          <div><span>Placas</span><b>${esc(lead.panels || '-')} placas</b></div>
+          <div><span>Potência</span><b>${esc(lead.kwp || '-')} kWp</b></div>
+          <div><span>Inversor</span><b>${esc(lead.inverter || '-')}</b></div>
+          <div><span>Valor à vista</span><b>${money(lead.cash_price)}</b></div>
+          <div><span>Financiamento</span><b>60x ${money(lead.bank_installment_60x)}</b></div>
+          <div><span>Resultado 60 meses</span><b>${money(lead.final_result_60_months)}</b></div>
+          <div><span>Fonte</span><b>${esc(lead.source || 'simulador')}</b></div>
+        </div>
+      `;
+      overlay.style.display = 'flex';
+    }
+
+    function fecharModal() {
+      overlay.style.display = 'none';
+      modal.innerHTML = '';
+    }
+
+    function copiarLead(id) {
+      const lead = leads.find((item) => String(item.lead_id) === String(id));
+      if (!lead) return;
+      const texto = [
+        `Lead: ${lead.name || 'Sem nome'}`,
+        `Telefone: ${lead.phone || lead.phone_digits || '-'}`,
+        `Cidade: ${cidade(lead) || '-'}`,
+        `Conta: ${money(lead.bill)}`,
+        `Sistema: ${lead.panels || '-'} placas · ${lead.kwp || '-'} kWp`,
+        `Valor: ${money(lead.cash_price)}`,
+        `Financiamento: 60x ${money(lead.bank_installment_60x)}`
+      ].join('\n');
+      navigator.clipboard.writeText(texto);
+    }
+
+    document.querySelector('#entrar').addEventListener('click', carregarLeads);
+    document.querySelector('#atualizar').addEventListener('click', carregarLeads);
+    document.querySelector('#buscar').addEventListener('click', carregarLeads);
+    document.querySelector('#limpar').addEventListener('click', () => {
+      busca.value = '';
+      carregarLeads();
+    });
+    document.querySelector('#sair').addEventListener('click', () => {
+      sessionStorage.removeItem('wm_simulador_crm_ok');
+      loginBox.style.display = 'flex';
+    });
+    tokenInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') carregarLeads();
+    });
+    busca.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') carregarLeads();
+    });
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) fecharModal();
+    });
+  </script>
+</body>
+</html>
