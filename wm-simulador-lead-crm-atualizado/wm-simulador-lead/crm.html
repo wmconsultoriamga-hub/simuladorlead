@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM Leads Solares WM</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --panel: #101a24;
+      --panel-2: #152331;
+      --line: rgba(255,255,255,.12);
+      --text: #f7fbff;
+      --muted: #9fb0c3;
+      --orange: #e87b1e;
+      --green: #25d366;
+      --danger: #ff6464;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: linear-gradient(145deg, #102338, var(--bg) 46%, #05080c);
+    }
+    main {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    p { margin: 0; color: var(--muted); line-height: 1.5; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(160px, 220px) auto;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    input, button {
+      min-height: 44px;
+      border-radius: 8px;
+      font: inherit;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: 0;
+    }
+    input:focus {
+      border-color: rgba(232,123,30,.8);
+      box-shadow: 0 0 0 3px rgba(232,123,30,.14);
+    }
+    button, .whatsapp {
+      border: 0;
+      background: var(--orange);
+      color: #fff;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+    }
+    button.secondary {
+      background: rgba(255,255,255,.09);
+      border: 1px solid var(--line);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat, .empty, .error {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16,26,36,.92);
+      padding: 14px;
+    }
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(16,26,36,.92);
+    }
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      color: #cbd6e2;
+      font-size: 12px;
+      text-transform: uppercase;
+      background: rgba(255,255,255,.04);
+    }
+    td small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+    }
+    .stage {
+      display: inline-flex;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: #dbe7f4;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .stage.hot {
+      background: rgba(37,211,102,.14);
+      color: #8af0ad;
+    }
+    .stage.warm {
+      background: rgba(232,123,30,.16);
+      color: #ffbf82;
+    }
+    .whatsapp {
+      background: var(--green);
+      min-height: 36px;
+      padding: 8px 10px;
+      white-space: nowrap;
+    }
+    .error {
+      display: none;
+      border-color: rgba(255,100,100,.45);
+      color: #ffd5d5;
+      margin-bottom: 14px;
+    }
+    .empty {
+      display: none;
+      text-align: center;
+      color: var(--muted);
+    }
+    @media (max-width: 760px) {
+      header, .toolbar { grid-template-columns: 1fr; display: grid; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>CRM Leads Solares WM</h1>
+        <p>Consulta rapida dos leads captados pela landing page do simulador.</p>
+      </div>
+      <button class="secondary" id="refresh" type="button">Atualizar</button>
+    </header>
+
+    <section class="toolbar" aria-label="Filtros do CRM">
+      <input id="search" type="search" placeholder="Buscar por nome, telefone, CEP ou cidade">
+      <input id="token" type="password" placeholder="Token de acesso">
+      <button id="load" type="button">Carregar leads</button>
+    </section>
+
+    <section class="stats" aria-label="Resumo">
+      <div class="stat"><span>Total listado</span><strong id="total">0</strong></div>
+      <div class="stat"><span>Clicaram no WhatsApp</span><strong id="clicked">0</strong></div>
+      <div class="stat"><span>Proposta vista</span><strong id="proposal">0</strong></div>
+      <div class="stat"><span>Ticket medio</span><strong id="ticket">R$ 0</strong></div>
+    </section>
+
+    <div class="error" id="error"></div>
+    <div class="empty" id="empty">Nenhum lead encontrado.</div>
+
+    <section class="table-wrap" aria-label="Tabela de leads">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Lead</th>
+            <th>Local</th>
+            <th>Conta</th>
+            <th>Sistema</th>
+            <th>Proposta</th>
+            <th>Entrada</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const tokenInput = document.querySelector('#token');
+    const searchInput = document.querySelector('#search');
+    const rows = document.querySelector('#rows');
+    const errorBox = document.querySelector('#error');
+    const emptyBox = document.querySelector('#empty');
+    const money = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const dateBR = (value) => value ? new Date(value).toLocaleString('pt-BR') : '-';
+    const onlyNumbers = (value) => String(value || '').replace(/\D/g, '');
+    const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+
+    tokenInput.value = localStorage.getItem('wm_crm_token') || '';
+
+    function stageFor(lead) {
+      if (lead.consultant_clicked_at) return { label: 'WhatsApp', className: 'stage hot' };
+      if (lead.proposal_viewed_at) return { label: 'Proposta vista', className: 'stage warm' };
+      return { label: 'Lead captado', className: 'stage' };
+    }
+
+    function updateStats(leads) {
+      const clicked = leads.filter((lead) => lead.consultant_clicked_at).length;
+      const proposal = leads.filter((lead) => lead.proposal_viewed_at).length;
+      const priced = leads.filter((lead) => Number(lead.cash_price) > 0);
+      const ticket = priced.reduce((sum, lead) => sum + Number(lead.cash_price || 0), 0) / (priced.length || 1);
+      document.querySelector('#total').textContent = leads.length;
+      document.querySelector('#clicked').textContent = clicked;
+      document.querySelector('#proposal').textContent = proposal;
+      document.querySelector('#ticket').textContent = money(ticket);
+    }
+
+    function renderRows(leads) {
+      rows.innerHTML = leads.map((lead) => {
+        const stage = stageFor(lead);
+        const phoneDigits = onlyNumbers(lead.phone_digits || lead.phone);
+        const city = [lead.city, lead.uf].filter(Boolean).join('/');
+        const whatsMessage = encodeURIComponent(`Olá, ${lead.name || ''}! Aqui é da WM Energia Solar. Recebemos sua simulação pelo site e vou te ajudar com a proposta.`);
+        const whatsUrl = phoneDigits ? `https://wa.me/55${phoneDigits.replace(/^55/, '')}?text=${whatsMessage}` : '#';
+        return `
+          <tr>
+            <td><span class="${stage.className}">${stage.label}</span></td>
+            <td><strong>${escapeHtml(lead.name || 'Sem nome')}</strong><small>${escapeHtml(lead.phone || lead.phone_digits || '-')}</small></td>
+            <td>${escapeHtml(city || '-')}<small>CEP: ${escapeHtml(lead.zip || '-')}</small></td>
+            <td>${money(lead.bill)}</td>
+            <td>${escapeHtml(lead.panels || '-')} placas<small>${escapeHtml(lead.inverter || '-')}</small></td>
+            <td>${money(lead.cash_price)}<small>60x ${money(lead.bank_installment_60x)}</small></td>
+            <td>${dateBR(lead.captured_at)}</td>
+            <td>${phoneDigits ? `<a class="whatsapp" href="${whatsUrl}" target="_blank" rel="noopener">Chamar</a>` : '-'}</td>
+          </tr>
+        `;
+      }).join('');
+      emptyBox.style.display = leads.length ? 'none' : 'block';
+    }
+
+    async function loadLeads() {
+      const token = tokenInput.value.trim();
+      const search = searchInput.value.trim();
+      if (!token) {
+        errorBox.textContent = 'Informe o token de acesso do CRM.';
+        errorBox.style.display = 'block';
+        return;
+      }
+      localStorage.setItem('wm_crm_token', token);
+      errorBox.style.display = 'none';
+      rows.innerHTML = '';
+
+      try {
+        const params = new URLSearchParams({ limit: '150' });
+        if (search) params.set('search', search);
+        const response = await fetch(`/api/solar-lead-list?${params}`, {
+          headers: { authorization: `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || data.error || 'Falha ao carregar leads');
+        updateStats(data.leads || []);
+        renderRows(data.leads || []);
+      } catch (error) {
+        updateStats([]);
+        errorBox.textContent = error.message;
+        errorBox.style.display = 'block';
+      }
+    }
+
+    document.querySelector('#load').addEventListener('click', loadLeads);
+    document.querySelector('#refresh').addEventListener('click', loadLeads);
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') loadLeads();
+    });
+  </script>
+</body>
+</html>
